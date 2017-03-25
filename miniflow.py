@@ -77,16 +77,55 @@ class Mul(Node):
 
 class Linear(Node):
 
-    def __init__(self, *args):
-        # You could access `x` and `y` in forward with
-        # self.inbound_nodes[0] (`x`) and self.inbound_nodes[1] (`y`)
-        Node.__init__(self, args)
+    def __init__(self, X, W, b):
+        Node.__init__(self, [X, W, b])
+
+        # NOTE: The weights and bias properties here are not
+        # numbers, but rather references to other nodes.
+        # The weight and bias values are stored within the
+        # respective nodes.
 
     def forward(self):
-        if self.value is None:
-            self.value = 1
-        for node in self.inbound_nodes:
-            self.value = self.value * node.value
+        """
+        Set self.value to the value of the linear function output.
+
+        Your code goes here!
+        """
+        X, W, b = self.inbound_nodes
+        self.value = np.dot(X.value, W.value) + b.value
+
+
+class Sigmoid(Node):
+    """
+    You need to fix the `_sigmoid` and `forward` methods.
+    """
+
+    def __init__(self, node):
+        Node.__init__(self, [node])
+
+    def _sigmoid(self, x):
+        """
+        This method is separate from `forward` because it
+        will be used later with `backward` as well.
+
+        `x`: A numpy array-like object.
+
+        Return the result of the sigmoid function.
+
+        Your code here!
+        """
+        return 1. / (1. + np.exp(-x))
+
+    def forward(self):
+        """
+        Set the value of this node to the result of the
+        sigmoid function, `_sigmoid`.
+
+        Your code here!
+        """
+        X = self.inbound_nodes[0].value
+        self.value = self._sigmoid(X)
+
 
 """
 No need to change anything below here!
