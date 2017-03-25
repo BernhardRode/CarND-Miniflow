@@ -127,6 +127,35 @@ class Sigmoid(Node):
         self.value = self._sigmoid(X)
 
 
+class MSE(Node):
+
+    def __init__(self, y, a):
+        """
+        The mean squared error cost function.
+        Should be used as the last node for a network.
+        """
+        # Call the base class' constructor.
+        Node.__init__(self, [y, a])
+
+    def forward(self):
+        """
+        Calculates the mean squared error.
+        """
+        # NOTE: We reshape these to avoid possible matrix/vector broadcast
+        # errors.
+        #
+        # For example, if we subtract an array of shape (3,) from an array of shape
+        # (3,1) we get an array of shape(3,3) as the result when we want
+        # an array of shape (3,1) instead.
+        #
+        # Making both arrays (3,1) insures the result is (3,1) and does
+        # an elementwise subtraction as expected.
+        y = self.inbound_nodes[0].value.reshape(-1, 1)
+        a = self.inbound_nodes[1].value.reshape(-1, 1)
+        m = self.inbound_nodes[0].value.shape[0]
+        self.value = np.sum(np.concatenate((1. / m) * np.square(y - a)))
+
+
 """
 No need to change anything below here!
 """
@@ -174,7 +203,7 @@ def topological_sort(feed_dict):
     return L
 
 
-def forward_pass(output_node, sorted_nodes):
+def forward_pass_old(output_node, sorted_nodes):
     """
     Performs a forward pass through a list of sorted nodes.
 
@@ -185,8 +214,20 @@ def forward_pass(output_node, sorted_nodes):
 
     Returns the output Node's value
     """
-
     for n in sorted_nodes:
         n.forward()
 
     return output_node.value
+
+
+def forward_pass(graph):
+    """
+    Performs a forward pass through a list of sorted Nodes.
+
+    Arguments:
+
+        `graph`: The result of calling `topological_sort`.
+    """
+    # Forward pass
+    for n in graph:
+        n.forward()
